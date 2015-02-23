@@ -30,7 +30,12 @@ var requestHandler = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
-  var statusCode = 200;
+  var statusCode = {
+    'ok': 200,
+    'notFound': 404,
+    'created': 201,
+    'unauthorized': 401
+  };
 
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
@@ -39,11 +44,18 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  if (request.url ==='/'){
+    response.writeHead(statusCode.unauthorized, headers);
+    response.end();
+  } else if (request.url ==='/1/classes/chatterbox/'){
+    response.writeHead(statusCode.ok, headers);
+    response.end(JSON.stringify({}));
+  }
+
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -52,7 +64,6 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -71,3 +82,4 @@ var defaultCorsHeaders = {
   "access-control-max-age": 10 // Seconds.
 };
 
+module.exports = requestHandler
