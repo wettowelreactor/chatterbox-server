@@ -13,6 +13,8 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 
 var requestHandler = function(request, response) {
+
+
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -44,16 +46,29 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "application/json";
 
-  // .writeHead() writes to the request line and headers of the response,
+
+  // .writeHead()Content-Type writes to the request line and headers of the response,
   // which includes the status and all headers.
+  var pathname = require('url').parse(request.url).pathname;
+  var appPath = '/1/classes/chatterbox/';
   if (request.url ==='/'){
     response.writeHead(statusCode.unauthorized, headers);
     response.end();
-  } else if (request.url ==='/1/classes/chatterbox/'){
+  } else if (pathname === appPath && request.method === 'GET'){
+    headers['Content-Type'] = "application/json";
     response.writeHead(statusCode.ok, headers);
-    response.end(JSON.stringify({}));
+    console.log('get', JSON.stringify({results: storage}));
+    response.end(JSON.stringify({results: storage}));
+  } else if (pathname === appPath && request.method === 'POST') {
+    headers['Content-Type'] = "application/json";
+    console.log('post request', request.data);
+    response.end();
+  } else if (pathname === appPath && request.method === 'OPTIONS') {
+    headers['Allow'] = "GET,POST,OPTIONS";
+    response.writeHead(statusCode.ok, headers);
+    console.log('options response');
+    response.end();
   }
 
 
@@ -80,6 +95,20 @@ var defaultCorsHeaders = {
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, accept",
   "access-control-max-age": 10 // Seconds.
+};
+
+var id = 0;
+var storage = [
+  {
+    id: 0,
+    username: 'firstUser',
+    roomname: 'homeroom',
+    text: 'init',
+    createdAt: new Date()
+  }
+];
+var getID = function(){
+  return id++;
 };
 
 module.exports = requestHandler
