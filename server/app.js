@@ -32,7 +32,7 @@ var getMaxID = function () {
 };
 
 readLog();
-getMaxID();
+objectId = getMaxID();
 
 var chatterboxPath = '/classes/chatterbox/*';
 var liveServerPath = '/classes/messages/*';
