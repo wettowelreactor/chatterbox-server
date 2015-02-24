@@ -150,4 +150,4 @@ var statusCode = {
   'unauthorized': 401
 };
 
-module.exports = requestHandler
+exports.requestHandler = requestHandler
