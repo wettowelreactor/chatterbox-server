@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 var url = require('url');
-var cors = require('express-cors')
+var cors = require('cors')
 var bodyParser = require('body-parser')
 
 var objectId = 0;
@@ -11,26 +11,22 @@ var getID = function(){
 };
 
 var chatterboxPath = '/classes/chatterbox/*';
+var liveServerPath = '/classes/messages/*';
+var stubServerPath = '/classes/room1/*';
 
-app.use(chatterboxPath, bodyParser.json());
+app.use('*', bodyParser.json());
 
-app.use(chatterboxPath, cors({
-    allowedOrigins: ['*'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    headers: ['Content-Type', 'Accept'],
-    maxAge: 10
-}));
+app.use(cors());
 
-app.get(chatterboxPath, function (req, res) {
+var handleGet = function(req, res){
   res.send({results: storage});
-});
+};
 
-// app.options(chatterboxPath, function(req, res) {
+app.get(chatterboxPath, handleGet);
+app.get(liveServerPath, handleGet);
+app.get(stubServerPath, handleGet);
 
-// });
-
-app.post(chatterboxPath, function(req, res){
-
+var handlePost = function(req, res){
   var newMessage = {
     objectId: getID(),
     username: req.body.username,
@@ -42,7 +38,11 @@ app.post(chatterboxPath, function(req, res){
 
   storage.push(newMessage);
   res.send({results: [newMessage]});
-});
+};
+
+app.post(chatterboxPath, handlePost);
+app.post(liveServerPath, handlePost);
+app.post(stubServerPath, handlePost);
 
 var server = app.listen(3000, function () {
 
