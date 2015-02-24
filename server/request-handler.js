@@ -29,7 +29,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log("Serving request type " + request.method + " for url " + request.url);
+  //console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
   var statusCode = {
@@ -58,16 +58,25 @@ var requestHandler = function(request, response) {
   } else if (pathname === appPath && request.method === 'GET'){
     headers['Content-Type'] = "application/json";
     response.writeHead(statusCode.ok, headers);
-    console.log('get', JSON.stringify({results: storage}));
     response.end(JSON.stringify({results: storage}));
   } else if (pathname === appPath && request.method === 'POST') {
     headers['Content-Type'] = "application/json";
-    console.log('post request', request.data);
-    response.end();
+    response.writeHead(statusCode.created, headers);
+    request.on('data', function(data) {
+      data = JSON.parse(data);
+      var newMessage = {
+        objectId: getID(),
+        username: data.username,
+        roomname: data.roomname,
+        text: data.text,
+        createdAt: new Date()
+      };
+      storage.push(newMessage);
+      response.end(JSON.stringify({results: newMessage}));
+    });
   } else if (pathname === appPath && request.method === 'OPTIONS') {
     headers['Allow'] = "GET,POST,OPTIONS";
     response.writeHead(statusCode.ok, headers);
-    console.log('options response');
     response.end();
   }
 
@@ -97,10 +106,10 @@ var defaultCorsHeaders = {
   "access-control-max-age": 10 // Seconds.
 };
 
-var id = 0;
+var objectId = 0;
 var storage = [
   {
-    id: 0,
+    objectId: 0,
     username: 'firstUser',
     roomname: 'homeroom',
     text: 'init',
@@ -108,7 +117,7 @@ var storage = [
   }
 ];
 var getID = function(){
-  return id++;
+  return ++objectId;
 };
 
 module.exports = requestHandler
