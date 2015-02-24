@@ -29,7 +29,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log("Serving request type " + request.method + " for url " + request.url);
+  //console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
 
@@ -44,19 +44,10 @@ var requestHandler = function(request, response) {
   // .writeHead()Content-Type writes to the request line and headers of the response,
   // which includes the status and all headers.
   var pathname = require('url').parse(request.url).pathname;
-  var chatterboxPath = '/classes/chatterbox/';
-  var testingPath = '/classes/messages';
-  var testingPath2 = '/classes/room1';
+  var paths = ['/classes/chatterbox/', '/classes/messages', '/classes/room1'];
 
-  console.log(pathname);
-  if (pathname === chatterboxPath){
-    chatterboxHandler(request, response);
-  } else if (pathname === testingPath){
-    console.log('in test for log');
-    logHandler(request, response);
-  } else if (pathname ===testingPath2){
-    console.log('in test for log2');
-    logHandler(request, response);
+  if (_.contains(paths, pathname)){
+    requestHandler(request, response);
   } else {
     response.writeHead(statusCode.notFound, headers);
     response.end();
@@ -72,7 +63,7 @@ var requestHandler = function(request, response) {
   // node to actually send all the data over to the client.
 };
 
-var chatterboxHandler = function (request, response) {
+var requestHandler = function (request, response) {
   if (request.method === "GET") {
     getMessages(request, response);
   } else if (request.method === "POST") {
@@ -81,17 +72,6 @@ var chatterboxHandler = function (request, response) {
     sendOptions(request, response, "GET, POST");
   }
 };
-
-var logHandler = function(request, response){
-  if (request.method === "GET") {
-    getMessages(request, response);
-  } else if (request.method === "POST") {
-    postMessage(request, response);
-  } else if (request.method === "OPTIONS") {
-    sendOptions(request, response, "GET, POST");
-  }
-}
-
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
