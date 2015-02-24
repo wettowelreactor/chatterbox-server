@@ -29,18 +29,11 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  //console.log("Serving request type " + request.method + " for url " + request.url);
+  console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
-  var statusCode = {
-    'ok': 200,
-    'notFound': 404,
-    'created': 201,
-    'unauthorized': 401
-  };
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
 
   // Tell the client we are sending them plain text.
   //
@@ -51,32 +44,21 @@ var requestHandler = function(request, response) {
   // .writeHead()Content-Type writes to the request line and headers of the response,
   // which includes the status and all headers.
   var pathname = require('url').parse(request.url).pathname;
-  var appPath = '/1/classes/chatterbox/';
-  if (request.url ==='/'){
-    response.writeHead(statusCode.unauthorized, headers);
-    response.end();
-  } else if (pathname === appPath && request.method === 'GET'){
-    headers['Content-Type'] = "application/json";
-    response.writeHead(statusCode.ok, headers);
-    response.end(JSON.stringify({results: storage}));
-  } else if (pathname === appPath && request.method === 'POST') {
-    headers['Content-Type'] = "application/json";
-    response.writeHead(statusCode.created, headers);
-    request.on('data', function(data) {
-      data = JSON.parse(data);
-      var newMessage = {
-        objectId: getID(),
-        username: data.username,
-        roomname: data.roomname,
-        text: data.text,
-        createdAt: new Date()
-      };
-      storage.push(newMessage);
-      response.end(JSON.stringify({results: newMessage}));
-    });
-  } else if (pathname === appPath && request.method === 'OPTIONS') {
-    headers['Allow'] = "GET,POST,OPTIONS";
-    response.writeHead(statusCode.ok, headers);
+  var chatterboxPath = '/classes/chatterbox/';
+  var testingPath = '/classes/messages';
+  var testingPath2 = '/classes/room1';
+
+  console.log(pathname);
+  if (pathname === chatterboxPath){
+    chatterboxHandler(request, response);
+  } else if (pathname === testingPath){
+    console.log('in test for log');
+    logHandler(request, response);
+  } else if (pathname ===testingPath2){
+    console.log('in test for log2');
+    logHandler(request, response);
+  } else {
+    response.writeHead(statusCode.notFound, headers);
     response.end();
   }
 
@@ -90,6 +72,27 @@ var requestHandler = function(request, response) {
   // node to actually send all the data over to the client.
 };
 
+var chatterboxHandler = function (request, response) {
+  if (request.method === "GET") {
+    getMessages(request, response);
+  } else if (request.method === "POST") {
+    postMessage(request, response);
+  } else if (request.method === "OPTIONS") {
+    sendOptions(request, response, "GET, POST");
+  }
+};
+
+var logHandler = function(request, response){
+  if (request.method === "GET") {
+    getMessages(request, response);
+  } else if (request.method === "POST") {
+    postMessage(request, response);
+  } else if (request.method === "OPTIONS") {
+    sendOptions(request, response, "GET, POST");
+  }
+}
+
+
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
 // are on different domains, for instance, your chat client.
@@ -99,7 +102,35 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
+var getMessages = function(request, response) {
+  headers['Content-Type'] = "application/json";
+  response.writeHead(statusCode.ok, headers);
+  response.end(JSON.stringify({results: storage}));
+}
+
+var postMessage = function(request, response){
+  headers['Content-Type'] = "application/json";
+  response.writeHead(statusCode.created, headers);
+  request.on('data', function(data) {
+    data = JSON.parse(data);
+    var newMessage = {
+      objectId: getID(),
+      username: data.username,
+      roomname: data.roomname,
+      text: data.text,
+      message: data.message,
+      createdAt: new Date()
+    };
+    storage.push(newMessage);
+    response.end(JSON.stringify({results: [newMessage]}));
+  });
+}
+var sendOptions = function(request, response, options){
+  headers['Allow'] = options + ", OPTIONS";
+  response.writeHead(statusCode.ok, headers);
+  response.end();
+}
+var headers = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, accept",
@@ -107,17 +138,16 @@ var defaultCorsHeaders = {
 };
 
 var objectId = 0;
-var storage = [
-  {
-    objectId: 0,
-    username: 'firstUser',
-    roomname: 'homeroom',
-    text: 'init',
-    createdAt: new Date()
-  }
-];
+var storage = [];
 var getID = function(){
   return ++objectId;
+};
+
+var statusCode = {
+  'ok': 200,
+  'notFound': 404,
+  'created': 201,
+  'unauthorized': 401
 };
 
 module.exports = requestHandler

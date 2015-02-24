@@ -5,7 +5,7 @@ $(function() {
   app = {
 //TODO: The current 'addFriend' function just adds the class 'friend'
 //to all messages sent by the user
-    server: 'http://127.0.0.1:3000/1/classes/chatterbox/',
+    server: 'http://127.0.0.1:3000/classes/chatterbox/',
     username: 'anonymous',
     roomname: 'lobby',
     lastMessageId: 0,
@@ -65,7 +65,10 @@ $(function() {
           console.log('chatterbox: Messages fetched', data);
 
           // Don't bother if we have nothing to work with
-          if (!data.results || !data.results.length) { return; }
+          if (!data.results || !data.results.length) {
+            app.stopSpinner();
+            return;
+          }
 
           // Get the last message
           var mostRecentMessage = data.results[data.results.length-1];
